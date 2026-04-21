@@ -2,6 +2,7 @@ package guiNewAccount;
 
 import java.sql.SQLException;
 import guiTools.UserNameRecognizer;
+import guiTools.InputValidator;
 
 import database.Database;
 import entityClasses.User;
@@ -92,9 +93,18 @@ public class ControllerNewAccount {
 		// Make sure the two passwords are the same.	
 		if (ViewNewAccount.text_Password1.getText().
 				compareTo(ViewNewAccount.text_Password2.getText()) == 0) {
-			
-			// The passwords match so we will set up the role and the User object base on the 
-			// information provided in the invitation
+
+			String pwError = InputValidator.isValidPassword(password);
+			if (pwError != null) {
+				ViewNewAccount.text_Password1.setText("");
+				ViewNewAccount.text_Password2.setText("");
+				ViewNewAccount.alertUsernamePasswordError.setTitle("Password is not valid!");
+				ViewNewAccount.alertUsernamePasswordError.setHeaderText("Your password is not valid!");
+				ViewNewAccount.alertUsernamePasswordError.setContentText(pwError);
+				ViewNewAccount.alertUsernamePasswordError.showAndWait();
+				return;
+			}
+
 			if (ViewNewAccount.theRole.compareTo("Admin") == 0) {
 				roleCode = 1;
 				user = new User(username, password, "", "", "", "", "", true, false, false);

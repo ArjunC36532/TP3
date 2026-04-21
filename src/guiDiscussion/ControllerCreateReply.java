@@ -2,6 +2,7 @@ package guiDiscussion;
 
 import entityClasses.Reply;
 import applicationMain.FoundationsMain;
+import guiTools.InputValidator;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
@@ -22,8 +23,9 @@ public class ControllerCreateReply {
 	 * Create a new reply. Returns true if successful. Shows alerts for errors; warning for deleted post.
 	 */
 	public static boolean performCreate(String postID, String body, String author) {
-		if (body == null || body.trim().isEmpty()) {
-			showError("Reply body cannot be null, empty, or whitespace-only.");
+		String bodyError = InputValidator.isValidPostContent(body, InputValidator.MAX_POST_BODY_LENGTH);
+		if (bodyError != null) {
+			showError("Body: " + bodyError);
 			return false;
 		}
 		if (author == null || author.trim().isEmpty()) {
@@ -34,7 +36,8 @@ public class ControllerCreateReply {
 			showError("Post ID is required.");
 			return false;
 		}
-		Reply reply = new Reply(body.trim(), author, postID);
+		String sanitizedBody = InputValidator.sanitizePostContent(body, InputValidator.MAX_POST_BODY_LENGTH);
+		Reply reply = new Reply(sanitizedBody, author, postID);
 		String result = FoundationsMain.replyStorage.addReply(reply);
 		if (result != null && result.startsWith("Error:")) {
 			showError(result);

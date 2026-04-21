@@ -3,6 +3,7 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 import database.Database;
 import guiDiscussion.ViewDiscussionList;
+import guiTools.InputValidator;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
@@ -223,25 +224,13 @@ public class ControllerAdminHome {
 	 * @param emailAddress	This String holds what is expected to be an email address
 	 */
 	protected static boolean invalidEmailAddress(String emailAddress) {
-		// Empty check
-	    if (emailAddress == null || emailAddress.trim().isEmpty()) {
-	        ViewAdminHome.alertEmailError.setContentText(
-	                "Email address cannot be empty.");
-	        ViewAdminHome.alertEmailError.showAndWait();
-	        return true;
-	    }
-
-	    // Regex for standard email format
-	    String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
-
-	    if (!emailAddress.matches(emailRegex)) {
-	        ViewAdminHome.alertEmailError.setContentText(
-	                "Please enter a valid email address (example: user@gmail.com).");
-	        ViewAdminHome.alertEmailError.showAndWait();
-	        return true;
-	    }
-
-	    return false; // email is valid
+		String emailError = InputValidator.isValidEmail(emailAddress);
+		if (emailError != null) {
+			ViewAdminHome.alertEmailError.setContentText(emailError);
+			ViewAdminHome.alertEmailError.showAndWait();
+			return true;
+		}
+		return false;
 	}
 	
 	/**********

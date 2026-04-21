@@ -1,6 +1,7 @@
 package guiFirstAdmin;
 
 import guiTools.UserNameRecognizer;
+import guiTools.InputValidator;
 import java.sql.SQLException;
 import database.Database;
 import entityClasses.User;
@@ -122,7 +123,17 @@ public class ControllerFirstAdmin {
 
 	    
 		if (adminPassword1.compareTo(adminPassword2) == 0) {
-        	// Create the passwords and proceed to the user home page
+			String pwError = InputValidator.isValidPassword(adminPassword1);
+			if (pwError != null) {
+				ViewFirstAdmin.text_AdminPassword1.setText("");
+				ViewFirstAdmin.text_AdminPassword2.setText("");
+				ViewFirstAdmin.alertUsernamePasswordError.setTitle("Password is not valid!");
+				ViewFirstAdmin.alertUsernamePasswordError.setHeaderText("Your password is not valid!");
+				ViewFirstAdmin.alertUsernamePasswordError.setContentText(pwError);
+				ViewFirstAdmin.alertUsernamePasswordError.showAndWait();
+				return;
+			}
+
         	User user = new User(adminUsername, adminPassword1, "", "", "", "", "", true, false, 
         			false);
             try {
