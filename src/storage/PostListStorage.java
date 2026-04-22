@@ -3,6 +3,7 @@ package storage;
 import java.util.ArrayList;
 import java.util.List;
 import entityClasses.Post;
+import security.DiscussionAuthorization;
 
 /*******
  * <p> Title: PostListStorage Class </p>
@@ -11,11 +12,12 @@ import entityClasses.Post;
  * It supports adding new posts, updating existing posts, deleting posts, retrieving all posts,
  * and retrieving subsets of posts such as search results. The number of posts stored has no fixed upper limit. </p>
  * 
+ * <p> For TP3, restricted update/delete operations are enforced here in the backend layer so that
+ * permission checking does not depend only on hidden GUI controls. </p>
+ * 
  * <p> Copyright: Arjun Chaudhary © 2026 </p>
  * 
- * @author Arjun Chaudhary
- * 
- * @version 1.00	2026-02-17 Initial implementation for Student Discussion System
+ * @version 1.10	2026-04-21 Added backend access control support for admins
  */ 
 
 public class PostListStorage {
@@ -38,7 +40,7 @@ public class PostListStorage {
      * <p> Method: String addPost(Post post) </p>
      * 
      * <p> Description: Adds a new post to the storage. Validates that the post has valid title,
-     * body, and author before adding. Returns an error message if validation fails, or null if successful. </p>
+     * body, and creator before adding. Returns an error message if validation fails, or null if successful. </p>
      * 
      * @param post specifies the Post object to be added
      * 
@@ -56,9 +58,9 @@ public class PostListStorage {
             return "Error: Post body cannot be null, empty, or whitespace-only.";
         }
         
-        // Validate author
+        // Validate creator
         if (post.getAuthor() == null || post.getAuthor().trim().isEmpty()) {
-            return "Error: Post author cannot be null or empty.";
+            return "Error: Post creator cannot be null or empty.";
         }
         
         posts.add(post);
@@ -156,9 +158,30 @@ public class PostListStorage {
     }
     
     /*****
-     * <p> Method: String updatePost(String postID, String newTitle, String newBody, String author) </p>
+     * <p> Method: String updatePost(String postID, String newTitle, String newBody, String username) </p>
      * 
-     * <p> Description: Updates an existing post. Validates that the post exists, the author is the original author,
+     * <p> Description: Updates an existing post using standard non-admin rules.
+     * This method is preserved for compatibility with existing callers. </p>
+     * 
+     * @param postID specifies the Post ID of the post to update
+     * 
+     * @param newTitle specifies the new title value
+     * 
+     * @param newBody specifies the new body content
+     * 
+     * @param username specifies the username attempting the update
+     * 
+     * @return null if successful, or an error message string if validation fails
+     * 
+     */
+    public String updatePost(String postID, String newTitle, String newBody, String username) {
+        return updatePost(postID, newTitle, newBody, username, false);
+    }
+    
+    /*****
+     * <p> Method: String updatePost(String postID, String newTitle, String newBody, String username, boolean isAdmin) </p>
+     * 
+     * <p> Description: Updates an existing post. Validates that the post exists, the current user is permitted,
      * and the new title and body are valid. Returns an error message if validation fails, or null if successful. </p>
      * 
      * @param postID specifies the Post ID of the post to update
@@ -167,12 +190,14 @@ public class PostListStorage {
      * 
      * @param newBody specifies the new body content
      * 
-     * @param author specifies the username attempting the update (must match original author)
+     * @param username specifies the username attempting the update
+     * 
+     * @param isAdmin specifies whether the current user has admin privileges
      * 
      * @return null if successful, or an error message string if validation fails
      * 
      */
-    public String updatePost(String postID, String newTitle, String newBody, String author) {
+    public String updatePost(String postID, String newTitle, String newBody, String username, boolean isAdmin) {
         // Find the post
         Post post = getPostByID(postID);
         if (post == null) {
@@ -184,9 +209,9 @@ public class PostListStorage {
             return "Error: Cannot update a deleted post.";
         }
         
-        // Verify author
-        if (author == null || !author.equals(post.getAuthor())) {
-            return "Error: You are not authorized to update this post. Only the original author can update it.";
+        // Verify permission
+        if (!DiscussionAuthorization.canModifyPost(post, username, isAdmin)) {
+            return "Error: You are not authorized to update this post.";
         }
         
         // Validate new title
@@ -207,19 +232,38 @@ public class PostListStorage {
     }
     
     /*****
-     * <p> Method: String deletePost(String postID, String author) </p>
+     * <p> Method: String deletePost(String postID, String username) </p>
      * 
-     * <p> Description: Marks a post as deleted. Validates that the post exists and the author is the original author.
-     * Returns an error message if validation fails, or null if successful. </p>
+     * <p> Description: Marks a post as deleted using standard non-admin rules.
+     * This method is preserved for compatibility with existing callers. </p>
      * 
      * @param postID specifies the Post ID of the post to delete
      * 
-     * @param author specifies the username attempting the deletion (must match original author)
+     * @param username specifies the username attempting the deletion
      * 
      * @return null if successful, or an error message string if validation fails
      * 
      */
-    public String deletePost(String postID, String author) {
+    public String deletePost(String postID, String username) {
+        return deletePost(postID, username, false);
+    }
+    
+    /*****
+     * <p> Method: String deletePost(String postID, String username, boolean isAdmin) </p>
+     * 
+     * <p> Description: Marks a post as deleted. Validates that the post exists and the current user is permitted.
+     * Returns an error message if validation fails, or null if successful. </p>
+     * 
+     * @param postID specifies the Post ID of the post to delete
+     * 
+     * @param username specifies the username attempting the deletion
+     * 
+     * @param isAdmin specifies whether the current user has admin privileges
+     * 
+     * @return null if successful, or an error message string if validation fails
+     * 
+     */
+    public String deletePost(String postID, String username, boolean isAdmin) {
         // Find the post
         Post post = getPostByID(postID);
         if (post == null) {
@@ -231,9 +275,9 @@ public class PostListStorage {
             return "Error: Post has already been deleted.";
         }
         
-        // Verify author
-        if (author == null || !author.equals(post.getAuthor())) {
-            return "Error: You are not authorized to delete this post. Only the original author can delete it.";
+        // Verify permission
+        if (!DiscussionAuthorization.canModifyPost(post, username, isAdmin)) {
+            return "Error: You are not authorized to delete this post.";
         }
         
         // Mark as deleted
