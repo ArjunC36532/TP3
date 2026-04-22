@@ -13,8 +13,7 @@ import applicationMain.FoundationsMain;
  * 
  * <p> Copyright: Arjun Chaudhary © 2026 </p>
  * 
- * @author Arjun Chaudhary
- * @version 1.00	2026-02-17 Initial implementation
+ * @version 1.10	2026-04-21 Added TP3 authorization-aware overloads
  */
 public class ModelPostDetail {
 
@@ -42,29 +41,57 @@ public class ModelPostDetail {
 	/**
 	 * Update a reply. Returns null on success, error message otherwise.
 	 */
-	public static String updateReply(String replyID, String newBody, String author) {
-		return FoundationsMain.replyStorage.updateReply(replyID, newBody, author);
+	public static String updateReply(String replyID, String newBody, String username) {
+		return FoundationsMain.replyStorage.updateReply(replyID, newBody, username);
+	}
+
+	/**
+	 * Update a reply with admin-aware authorization. Returns null on success, error message otherwise.
+	 */
+	public static String updateReply(String replyID, String newBody, String username, boolean isAdmin) {
+		return FoundationsMain.replyStorage.updateReply(replyID, newBody, username, isAdmin);
 	}
 
 	/**
 	 * Delete a reply. Returns null on success, error message otherwise.
 	 */
-	public static String deleteReply(String replyID, String author) {
-		return FoundationsMain.replyStorage.deleteReply(replyID, author);
+	public static String deleteReply(String replyID, String username) {
+		return FoundationsMain.replyStorage.deleteReply(replyID, username);
+	}
+
+	/**
+	 * Delete a reply with admin-aware authorization. Returns null on success, error message otherwise.
+	 */
+	public static String deleteReply(String replyID, String username, boolean isAdmin) {
+		return FoundationsMain.replyStorage.deleteReply(replyID, username, isAdmin);
 	}
 
 	/**
 	 * Update a post. Returns null on success, error message otherwise.
 	 */
-	public static String updatePost(String postID, String newTitle, String newBody, String author) {
-		return FoundationsMain.postStorage.updatePost(postID, newTitle, newBody, author);
+	public static String updatePost(String postID, String newTitle, String newBody, String username) {
+		return FoundationsMain.postStorage.updatePost(postID, newTitle, newBody, username);
+	}
+
+	/**
+	 * Update a post with admin-aware authorization. Returns null on success, error message otherwise.
+	 */
+	public static String updatePost(String postID, String newTitle, String newBody, String username, boolean isAdmin) {
+		return FoundationsMain.postStorage.updatePost(postID, newTitle, newBody, username, isAdmin);
 	}
 
 	/**
 	 * Delete a post (soft delete). Returns null on success, error message otherwise.
 	 */
-	public static String deletePost(String postID, String author) {
-		return FoundationsMain.postStorage.deletePost(postID, author);
+	public static String deletePost(String postID, String username) {
+		return FoundationsMain.postStorage.deletePost(postID, username);
+	}
+
+	/**
+	 * Delete a post (soft delete) with admin-aware authorization. Returns null on success, error message otherwise.
+	 */
+	public static String deletePost(String postID, String username, boolean isAdmin) {
+		return FoundationsMain.postStorage.deletePost(postID, username, isAdmin);
 	}
 
 	/**

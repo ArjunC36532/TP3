@@ -12,8 +12,7 @@ import javafx.scene.control.Alert.AlertType;
  * 
  * <p> Copyright: Arjun Chaudhary © 2026 </p>
  * 
- * @author Arjun Chaudhary
- * @version 1.00	2026-02-17 Initial implementation
+ * @version 1.10	2026-04-21 Updated for TP3 access control
  */
 public class ControllerUpdateReply {
 
@@ -25,11 +24,25 @@ public class ControllerUpdateReply {
 			showError("Updated reply body cannot be null, empty, or whitespace-only.");
 			return false;
 		}
-		String err = FoundationsMain.replyStorage.updateReply(replyID, newBody.trim(), author);
+
+		String currentUsername = ControllerPostDetail.getCurrentUsername();
+		boolean isAdmin = ControllerPostDetail.isAdmin();
+
+		if (currentUsername == null || currentUsername.trim().isEmpty()) {
+			currentUsername = author;
+		}
+
+		String err = FoundationsMain.replyStorage.updateReply(
+				replyID,
+				newBody.trim(),
+				currentUsername,
+				isAdmin);
+
 		if (err != null) {
 			showError(err);
 			return false;
 		}
+
 		Alert success = new Alert(AlertType.INFORMATION);
 		success.setTitle("Success");
 		success.setHeaderText("Reply Updated");
