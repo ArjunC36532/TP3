@@ -1,6 +1,7 @@
 package guiDiscussion;
 
 import applicationMain.FoundationsMain;
+import guiTools.InputValidator;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
@@ -20,29 +21,19 @@ public class ControllerUpdatePost {
 	 * Update a post. Returns true if successful. Shows alerts for errors.
 	 */
 	public static boolean performUpdate(String postID, String newTitle, String newBody, String author) {
-		if (newTitle == null || newTitle.trim().isEmpty()) {
-			showError("Updated title cannot be null, empty, or whitespace-only.");
+		String titleError = InputValidator.isValidPostContent(newTitle, InputValidator.MAX_POST_TITLE_LENGTH);
+		if (titleError != null) {
+			showError("Title: " + titleError);
 			return false;
 		}
-		if (newBody == null || newBody.trim().isEmpty()) {
-			showError("Updated body cannot be null, empty, or whitespace-only.");
+		String bodyError = InputValidator.isValidPostContent(newBody, InputValidator.MAX_POST_BODY_LENGTH);
+		if (bodyError != null) {
+			showError("Body: " + bodyError);
 			return false;
 		}
-
-		String currentUsername = ControllerPostDetail.getCurrentUsername();
-		boolean isAdmin = ControllerPostDetail.isAdmin();
-
-		if (currentUsername == null || currentUsername.trim().isEmpty()) {
-			currentUsername = author;
-		}
-
-		String err = FoundationsMain.postStorage.updatePost(
-				postID,
-				newTitle.trim(),
-				newBody.trim(),
-				currentUsername,
-				isAdmin);
-
+		String sanitizedTitle = InputValidator.sanitizePostContent(newTitle, InputValidator.MAX_POST_TITLE_LENGTH);
+		String sanitizedBody = InputValidator.sanitizePostContent(newBody, InputValidator.MAX_POST_BODY_LENGTH);
+		String err = FoundationsMain.postStorage.updatePost(postID, sanitizedTitle, sanitizedBody, author);
 		if (err != null) {
 			showError(err);
 			return false;

@@ -24,6 +24,13 @@ import guiAdminHome.InvitationData;
  * on the H2 main page.)  This class leverages H2 and provides numerous special supporting methods.
  * </p>
  * 
+ * <p> <b>SQL Injection Defense:</b> All queries that include user-supplied data use
+ * {@link java.sql.PreparedStatement} with parameterized placeholders ({@code ?}). This is the
+ * primary defense against SQL injection attacks. The only use of the raw {@link java.sql.Statement}
+ * is in {@link #createTables()}, which executes hard-coded DDL strings containing no user input.
+ * As an additional defense-in-depth layer, all user input is validated and sanitized by
+ * {@link guiTools.InputValidator} before reaching this class. </p>
+ * 
  * <p> Copyright: Lynn Robert Carter © 2025 </p>
  * 
  * @author Lynn Robert Carter
@@ -31,6 +38,7 @@ import guiAdminHome.InvitationData;
  * @version 2.00		2025-04-29 Updated and expanded from the version produce by on a previous
  * 							version by Pravalika Mukkiri and Ishwarya Hidkimath Basavaraj
  * @version 2.01		2025-12-17 Minor updates for Spring 2026
+ * @version 2.02		2026-04-11 Added SQL injection defense documentation (Arjun Chaudhary, TP3)
  */
 
 /*
@@ -104,7 +112,10 @@ public class Database {
 /*******
  * <p> Method: createTables </p>
  * 
- * <p> Description: Used to create new instances of the two database tables used by this class.</p>
+ * <p> Description: Used to create new instances of the two database tables used by this class.
+ * This method uses {@code statement.execute()} with hard-coded DDL strings rather than
+ * {@code PreparedStatement} because the SQL contains no user-supplied data -- only fixed
+ * table and column definitions. This is safe from SQL injection by design.</p>
  * 
  */
 	private void createTables() throws SQLException {

@@ -3,6 +3,7 @@ package guiRole2;
 import entityClasses.Post;
 import guiDiscussion.ViewCreatePost;
 import guiDiscussion.ViewPostDetail;
+import guiTools.InputValidator;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
@@ -57,6 +58,18 @@ public class ControllerRole2Home {
 		String keyword = ViewRole2Home.text_SearchKeyword.getText();
 		String thread = ViewRole2Home.combobox_ThreadFilter.getSelectionModel().getSelectedItem();
 		if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+		if (keyword != null) {
+			String searchError = InputValidator.isValidSearchKeyword(keyword, InputValidator.MAX_SEARCH_KEYWORD_LENGTH);
+			if (searchError != null) {
+				Alert alert = new Alert(AlertType.WARNING);
+				alert.setTitle("Invalid Search");
+				alert.setHeaderText("Search keyword rejected");
+				alert.setContentText(searchError);
+				alert.showAndWait();
+				return;
+			}
+			keyword = InputValidator.sanitizeText(keyword, InputValidator.MAX_SEARCH_KEYWORD_LENGTH);
+		}
 		ModelRole2Home.refreshPostList(keyword, thread);
 	}
 

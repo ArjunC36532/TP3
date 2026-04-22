@@ -2,6 +2,7 @@ package guiDiscussion;
 
 import entityClasses.Post;
 import applicationMain.FoundationsMain;
+import guiTools.InputValidator;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
@@ -23,20 +24,29 @@ public class ControllerCreatePost {
 	 * Returns true if successful, false otherwise. Shows alerts for errors.
 	 */
 	public static boolean performCreate(String title, String body, String thread, String author) {
-		if (title == null || title.trim().isEmpty()) {
-			showError("Post title cannot be null, empty, or whitespace-only.");
+		String titleError = InputValidator.isValidPostContent(title, InputValidator.MAX_POST_TITLE_LENGTH);
+		if (titleError != null) {
+			showError("Title: " + titleError);
 			return false;
 		}
-		if (body == null || body.trim().isEmpty()) {
-			showError("Post body cannot be null, empty, or whitespace-only.");
+		String bodyError = InputValidator.isValidPostContent(body, InputValidator.MAX_POST_BODY_LENGTH);
+		if (bodyError != null) {
+			showError("Body: " + bodyError);
 			return false;
 		}
 		if (author == null || author.trim().isEmpty()) {
 			showError("Author cannot be empty.");
 			return false;
 		}
+		String threadError = InputValidator.isValidThreadName(thread, InputValidator.MAX_THREAD_NAME_LENGTH);
+		if (threadError != null) {
+			showError("Thread: " + threadError);
+			return false;
+		}
+		String sanitizedTitle = InputValidator.sanitizePostContent(title, InputValidator.MAX_POST_TITLE_LENGTH);
+		String sanitizedBody = InputValidator.sanitizePostContent(body, InputValidator.MAX_POST_BODY_LENGTH);
 		String threadVal = (thread == null || thread.trim().isEmpty()) ? "General" : thread.trim();
-		Post post = new Post(title.trim(), body.trim(), threadVal, author);
+		Post post = new Post(sanitizedTitle, sanitizedBody, threadVal, author);
 		String err = FoundationsMain.postStorage.addPost(post);
 		if (err != null) {
 			showError(err);

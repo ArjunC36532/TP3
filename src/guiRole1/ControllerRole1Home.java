@@ -3,6 +3,7 @@ package guiRole1;
 import entityClasses.Post;
 import guiDiscussion.ViewCreatePost;
 import guiDiscussion.ViewPostDetail;
+import guiTools.InputValidator;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
@@ -64,6 +65,18 @@ public class ControllerRole1Home {
 		String keyword = ViewRole1Home.text_SearchKeyword.getText();
 		String thread = ViewRole1Home.combobox_ThreadFilter.getSelectionModel().getSelectedItem();
 		if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+		if (keyword != null) {
+			String searchError = InputValidator.isValidSearchKeyword(keyword, InputValidator.MAX_SEARCH_KEYWORD_LENGTH);
+			if (searchError != null) {
+				Alert alert = new Alert(AlertType.WARNING);
+				alert.setTitle("Invalid Search");
+				alert.setHeaderText("Search keyword rejected");
+				alert.setContentText(searchError);
+				alert.showAndWait();
+				return;
+			}
+			keyword = InputValidator.sanitizeText(keyword, InputValidator.MAX_SEARCH_KEYWORD_LENGTH);
+		}
 		ModelRole1Home.refreshPostList(keyword, thread);
 	}
 

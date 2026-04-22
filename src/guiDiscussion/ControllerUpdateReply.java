@@ -1,6 +1,7 @@
 package guiDiscussion;
 
 import applicationMain.FoundationsMain;
+import guiTools.InputValidator;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
@@ -20,10 +21,13 @@ public class ControllerUpdateReply {
 	 * Update a reply. Returns true if successful. Shows alerts for errors.
 	 */
 	public static boolean performUpdate(String replyID, String newBody, String author) {
-		if (newBody == null || newBody.trim().isEmpty()) {
-			showError("Updated reply body cannot be null, empty, or whitespace-only.");
+		String bodyError = InputValidator.isValidPostContent(newBody, InputValidator.MAX_POST_BODY_LENGTH);
+		if (bodyError != null) {
+			showError("Body: " + bodyError);
 			return false;
 		}
+		String sanitizedBody = InputValidator.sanitizePostContent(newBody, InputValidator.MAX_POST_BODY_LENGTH);
+		String err = FoundationsMain.replyStorage.updateReply(replyID, sanitizedBody, author);
 
 		String currentUsername = ControllerPostDetail.getCurrentUsername();
 		boolean isAdmin = ControllerPostDetail.isAdmin();

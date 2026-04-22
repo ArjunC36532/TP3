@@ -3,8 +3,10 @@ package guiUserUpdate;
 import java.util.Optional;
 
 import database.Database;
+import guiTools.InputValidator;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
@@ -197,15 +199,10 @@ public class ViewUserUpdate {
     }
     
     private static String validateNewPassword(String pw, String oldPw) {
-        if (pw == null || pw.trim().isEmpty()) return "Password cannot be empty.";
-        if (pw.length() < 8) return "Password must be at least 8 characters.";
-        if (pw.contains(" ")) return "Password cannot contain spaces.";
-        if (!pw.matches(".*[A-Z].*")) return "Password must include at least one uppercase letter.";
-        if (!pw.matches(".*[a-z].*")) return "Password must include at least one lowercase letter.";
-        if (!pw.matches(".*\\d.*")) return "Password must include at least one number.";
-        if (!pw.matches(".*[^A-Za-z0-9].*")) return "Password must include at least one special character.";
+        String error = InputValidator.isValidPassword(pw);
+        if (error != null) return error;
         if (oldPw != null && pw.equals(oldPw)) return "New password must be different from the old password.";
-        return null; // valid
+        return null;
     }
 
 
@@ -308,7 +305,14 @@ public class ViewUserUpdate {
         setupButtonUI(button_UpdateFirstName, "Dialog", 18, 275, Pos.CENTER, 500, 193);
         button_UpdateFirstName.setOnAction((_) -> {
             result = dialogUpdateFirstName.showAndWait();
-            result.ifPresent(_ -> theDatabase.updateFirstName(theUser.getUserName(), result.get()));
+            result.ifPresent(val -> {
+                String nameError = InputValidator.isValidName(val, InputValidator.MAX_NAME_LENGTH);
+                if (nameError != null) {
+                    showValidationError("Invalid First Name", nameError);
+                    return;
+                }
+                theDatabase.updateFirstName(theUser.getUserName(), val.trim());
+            });
             theDatabase.getUserAccountDetails(theUser.getUserName());
             String newName = theDatabase.getCurrentFirstName();
             theUser.setFirstName(newName);
@@ -322,7 +326,14 @@ public class ViewUserUpdate {
         setupButtonUI(button_UpdateMiddleName, "Dialog", 18, 275, Pos.CENTER, 500, 243);
         button_UpdateMiddleName.setOnAction((_) -> {
             result = dialogUpdateMiddleName.showAndWait();
-            result.ifPresent(_ -> theDatabase.updateMiddleName(theUser.getUserName(), result.get()));
+            result.ifPresent(val -> {
+                String nameError = InputValidator.isValidName(val, InputValidator.MAX_NAME_LENGTH);
+                if (nameError != null) {
+                    showValidationError("Invalid Middle Name", nameError);
+                    return;
+                }
+                theDatabase.updateMiddleName(theUser.getUserName(), val.trim());
+            });
             theDatabase.getUserAccountDetails(theUser.getUserName());
             String newName = theDatabase.getCurrentMiddleName();
             theUser.setMiddleName(newName);
@@ -336,7 +347,14 @@ public class ViewUserUpdate {
         setupButtonUI(button_UpdateLastName, "Dialog", 18, 275, Pos.CENTER, 500, 293);
         button_UpdateLastName.setOnAction((_) -> {
             result = dialogUpdateLastName.showAndWait();
-            result.ifPresent(_ -> theDatabase.updateLastName(theUser.getUserName(), result.get()));
+            result.ifPresent(val -> {
+                String nameError = InputValidator.isValidName(val, InputValidator.MAX_NAME_LENGTH);
+                if (nameError != null) {
+                    showValidationError("Invalid Last Name", nameError);
+                    return;
+                }
+                theDatabase.updateLastName(theUser.getUserName(), val.trim());
+            });
             theDatabase.getUserAccountDetails(theUser.getUserName());
             String newName = theDatabase.getCurrentLastName();
             theUser.setLastName(newName);
@@ -350,7 +368,14 @@ public class ViewUserUpdate {
         setupButtonUI(button_UpdatePreferredFirstName, "Dialog", 18, 275, Pos.CENTER, 500, 343);
         button_UpdatePreferredFirstName.setOnAction((_) -> {
             result = dialogUpdatePreferredFirstName.showAndWait();
-            result.ifPresent(_ -> theDatabase.updatePreferredFirstName(theUser.getUserName(), result.get()));
+            result.ifPresent(val -> {
+                String nameError = InputValidator.isValidName(val, InputValidator.MAX_NAME_LENGTH);
+                if (nameError != null) {
+                    showValidationError("Invalid Preferred First Name", nameError);
+                    return;
+                }
+                theDatabase.updatePreferredFirstName(theUser.getUserName(), val.trim());
+            });
             theDatabase.getUserAccountDetails(theUser.getUserName());
             String newName = theDatabase.getCurrentPreferredFirstName();
             theUser.setPreferredFirstName(newName);
@@ -364,7 +389,14 @@ public class ViewUserUpdate {
         setupButtonUI(button_UpdateEmailAddress, "Dialog", 18, 275, Pos.CENTER, 500, 393);
         button_UpdateEmailAddress.setOnAction((_) -> {
             result = dialogUpdateEmailAddresss.showAndWait();
-            result.ifPresent(_ -> theDatabase.updateEmailAddress(theUser.getUserName(), result.get()));
+            result.ifPresent(val -> {
+                String emailError = InputValidator.isValidEmail(val);
+                if (emailError != null) {
+                    showValidationError("Invalid Email Address", emailError);
+                    return;
+                }
+                theDatabase.updateEmailAddress(theUser.getUserName(), val.trim());
+            });
             theDatabase.getUserAccountDetails(theUser.getUserName());
             String newEmail = theDatabase.getCurrentEmailAddress();
             theUser.setEmailAddress(newEmail);
@@ -424,5 +456,16 @@ public class ViewUserUpdate {
         b.setAlignment(p);
         b.setLayoutX(x);
         b.setLayoutY(y);
+    }
+
+    /**********
+     * Private helper to show a validation error alert for profile field updates.
+     */
+    private static void showValidationError(String header, String message) {
+        Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setTitle("Validation Error");
+        a.setHeaderText(header);
+        a.setContentText(message);
+        a.showAndWait();
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import entityClasses.Post;
 import applicationMain.FoundationsMain;
+import guiTools.InputValidator;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -125,6 +126,19 @@ public class ViewDiscussionList {
 		String keyword = text_SearchKeyword.getText();
 		String thread = combobox_ThreadFilter.getSelectionModel().getSelectedItem();
 		if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+		if (keyword != null) {
+			String searchError = InputValidator.isValidSearchKeyword(keyword, InputValidator.MAX_SEARCH_KEYWORD_LENGTH);
+			if (searchError != null) {
+				javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+						javafx.scene.control.Alert.AlertType.WARNING);
+				alert.setTitle("Invalid Search");
+				alert.setHeaderText("Search keyword rejected");
+				alert.setContentText(searchError);
+				alert.showAndWait();
+				return;
+			}
+			keyword = InputValidator.sanitizeText(keyword, InputValidator.MAX_SEARCH_KEYWORD_LENGTH);
+		}
 		refreshList(keyword, thread);
 	}
 

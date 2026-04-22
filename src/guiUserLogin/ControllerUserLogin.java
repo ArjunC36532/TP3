@@ -2,6 +2,7 @@ package guiUserLogin;
 
 import database.Database;
 import entityClasses.User;
+import guiTools.InputValidator;
 import javafx.stage.Stage;
 
 /*******
@@ -68,6 +69,29 @@ public class ControllerUserLogin {
 	    String username = ViewUserLogin.text_Username.getText();
 	    String password = ViewUserLogin.text_Password.getText();
 	    String otpEntered = ViewUserLogin.text_OTP.getText();
+
+	    String usernameError = InputValidator.isValidUsername(username);
+	    if (usernameError != null) {
+	        ViewUserLogin.alertUsernamePasswordError.setContentText(usernameError);
+	        ViewUserLogin.alertUsernamePasswordError.showAndWait();
+	        return;
+	    }
+
+	    if (password != null && password.length() > InputValidator.MAX_PASSWORD_LENGTH) {
+	        ViewUserLogin.alertUsernamePasswordError.setContentText(
+	            "Password cannot exceed " + InputValidator.MAX_PASSWORD_LENGTH + " characters.");
+	        ViewUserLogin.alertUsernamePasswordError.showAndWait();
+	        return;
+	    }
+
+	    if (otpEntered != null && !otpEntered.trim().isEmpty()) {
+	        String otpError = InputValidator.isValidOTP(otpEntered);
+	        if (otpError != null) {
+	            ViewUserLogin.alertUsernamePasswordError.setContentText(otpError);
+	            ViewUserLogin.alertUsernamePasswordError.showAndWait();
+	            return;
+	        }
+	    }
 
 	    // Fetch the user and verify the username
 	    if (!theDatabase.getUserAccountDetails(username)) {
@@ -143,6 +167,12 @@ public class ControllerUserLogin {
 	 * 
 	 */
 	protected static void doSetupAccount(Stage theStage, String invitationCode) {
+		String codeError = InputValidator.isValidInvitationCode(invitationCode);
+		if (codeError != null) {
+			ViewUserLogin.alertUsernamePasswordError.setContentText(codeError);
+			ViewUserLogin.alertUsernamePasswordError.showAndWait();
+			return;
+		}
 		guiNewAccount.ViewNewAccount.displayNewAccount(theStage, invitationCode);
 	}
 
