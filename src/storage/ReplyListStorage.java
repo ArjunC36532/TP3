@@ -3,6 +3,7 @@ package storage;
 import java.util.ArrayList;
 import java.util.List;
 import entityClasses.Reply;
+import security.DiscussionAuthorization;
 
 /*******
  * <p> Title: ReplyListStorage Class </p>
@@ -14,9 +15,7 @@ import entityClasses.Reply;
  * 
  * <p> Copyright: Arjun Chaudhary © 2026 </p>
  * 
- * @author Arjun Chaudhary
- * 
- * @version 1.00	2026-02-17 Initial implementation for Student Discussion System
+ * @version 1.10	2026-04-21 Added backend access control support for admins
  */ 
 
 public class ReplyListStorage {
@@ -48,7 +47,7 @@ public class ReplyListStorage {
      * <p> Method: String addReply(Reply reply) </p>
      * 
      * <p> Description: Adds a new reply to the storage. Validates that the reply has valid body,
-     * author, and that the associated post exists. If the post has been deleted, a warning is returned
+     * creator, and that the associated post exists. If the post has been deleted, a warning is returned
      * but the reply is still added. Returns an error message if validation fails, or null if successful. </p>
      * 
      * @param reply specifies the Reply object to be added
@@ -62,9 +61,9 @@ public class ReplyListStorage {
             return "Error: Reply body cannot be null, empty, or whitespace-only.";
         }
         
-        // Validate author
+        // Validate creator
         if (reply.getAuthor() == null || reply.getAuthor().trim().isEmpty()) {
-            return "Error: Reply author cannot be null or empty.";
+            return "Error: Reply creator cannot be null or empty.";
         }
         
         // Validate postID
@@ -139,30 +138,51 @@ public class ReplyListStorage {
     }
     
     /*****
-     * <p> Method: String updateReply(String replyID, String newBody, String author) </p>
+     * <p> Method: String updateReply(String replyID, String newBody, String username) </p>
      * 
-     * <p> Description: Updates an existing reply. Validates that the reply exists, the author is the original author,
+     * <p> Description: Updates an existing reply using standard non-admin rules.
+     * This method is preserved for compatibility with existing callers. </p>
+     * 
+     * @param replyID specifies the Reply ID of the reply to update
+     * 
+     * @param newBody specifies the new body content
+     * 
+     * @param username specifies the username attempting the update
+     * 
+     * @return null if successful, or an error message string if validation fails
+     * 
+     */
+    public String updateReply(String replyID, String newBody, String username) {
+        return updateReply(replyID, newBody, username, false);
+    }
+    
+    /*****
+     * <p> Method: String updateReply(String replyID, String newBody, String username, boolean isAdmin) </p>
+     * 
+     * <p> Description: Updates an existing reply. Validates that the reply exists, the current user is permitted,
      * and the new body is valid. Returns an error message if validation fails, or null if successful. </p>
      * 
      * @param replyID specifies the Reply ID of the reply to update
      * 
      * @param newBody specifies the new body content
      * 
-     * @param author specifies the username attempting the update (must match original author)
+     * @param username specifies the username attempting the update
+     * 
+     * @param isAdmin specifies whether the current user has admin privileges
      * 
      * @return null if successful, or an error message string if validation fails
      * 
      */
-    public String updateReply(String replyID, String newBody, String author) {
+    public String updateReply(String replyID, String newBody, String username, boolean isAdmin) {
         // Find the reply
         Reply reply = getReplyByID(replyID);
         if (reply == null) {
             return "Error: Reply does not exist.";
         }
         
-        // Verify author
-        if (author == null || !author.equals(reply.getAuthor())) {
-            return "Error: You are not authorized to update this reply. Only the original author can update it.";
+        // Verify permission
+        if (!DiscussionAuthorization.canModifyReply(reply, username, isAdmin)) {
+            return "Error: You are not authorized to update this reply.";
         }
         
         // Validate new body
@@ -177,28 +197,47 @@ public class ReplyListStorage {
     }
     
     /*****
-     * <p> Method: String deleteReply(String replyID, String author) </p>
+     * <p> Method: String deleteReply(String replyID, String username) </p>
      * 
-     * <p> Description: Deletes a reply from storage. Validates that the reply exists and the author is the original author.
-     * Returns an error message if validation fails, or null if successful. </p>
+     * <p> Description: Deletes a reply from storage using standard non-admin rules.
+     * This method is preserved for compatibility with existing callers. </p>
      * 
      * @param replyID specifies the Reply ID of the reply to delete
      * 
-     * @param author specifies the username attempting the deletion (must match original author)
+     * @param username specifies the username attempting the deletion
      * 
      * @return null if successful, or an error message string if validation fails
      * 
      */
-    public String deleteReply(String replyID, String author) {
+    public String deleteReply(String replyID, String username) {
+        return deleteReply(replyID, username, false);
+    }
+    
+    /*****
+     * <p> Method: String deleteReply(String replyID, String username, boolean isAdmin) </p>
+     * 
+     * <p> Description: Deletes a reply from storage. Validates that the reply exists and the current user is permitted.
+     * Returns an error message if validation fails, or null if successful. </p>
+     * 
+     * @param replyID specifies the Reply ID of the reply to delete
+     * 
+     * @param username specifies the username attempting the deletion
+     * 
+     * @param isAdmin specifies whether the current user has admin privileges
+     * 
+     * @return null if successful, or an error message string if validation fails
+     * 
+     */
+    public String deleteReply(String replyID, String username, boolean isAdmin) {
         // Find the reply
         Reply reply = getReplyByID(replyID);
         if (reply == null) {
             return "Error: Reply does not exist.";
         }
         
-        // Verify author
-        if (author == null || !author.equals(reply.getAuthor())) {
-            return "Error: You are not authorized to delete this reply. Only the original author can delete it.";
+        // Verify permission
+        if (!DiscussionAuthorization.canModifyReply(reply, username, isAdmin)) {
+            return "Error: You are not authorized to delete this reply.";
         }
         
         // Remove the reply from storage
