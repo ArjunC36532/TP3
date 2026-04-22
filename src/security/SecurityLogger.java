@@ -15,11 +15,11 @@ import java.util.logging.Logger;
 /*******
  * <p> Title: SecurityLogger Class </p>
  *
- * <p> Description: A singleton security logger that captures security-relevant
+ * <p> Description: A singleton security logger that captures security relevant
  * events for the Foundations application.  Every event is written to a flat log
- * file (security_events.log) so it persists between runs, and also kept in an
- * in-memory list so unit tests can inspect entries without touching the disk.
- * Events covered include login attempts, access-control violations, authentication
+ * file (security_events.log) so it lasts between runs, and also kept in an
+ * in memory list so unit tests can look at entries without touching the disk.
+ * Events covered include login attempts, access control violations, authentication
  * failures, password changes, account creation/deletion, role changes, and
  * suspicious input that might signal an injection attempt. </p>
  *
@@ -28,7 +28,6 @@ import java.util.logging.Logger;
  *
  * <p> Testing: all public methods are exercised by testCases.SecurityLoggingTests. </p>
  *
- * <p> Copyright: Sudharshan Ramadass &copy; 2026 </p>
  *
  * @author Sudharshan Ramadass
  *
